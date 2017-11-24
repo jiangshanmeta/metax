@@ -1,3 +1,6 @@
+
+
+import {state_mixin,init_state} from "./state.js"
 import init_plugin from "./plugin.js"
 
 function Store(options){
@@ -7,9 +10,11 @@ function Store(options){
     }
     this.$options = options;
 
-
+    init_state(this);
     init_plugin(this);
     console.log("sss");
 }
+
+state_mixin(Store);
 
 export default Store
