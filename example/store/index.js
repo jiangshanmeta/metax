@@ -3,6 +3,9 @@ import metax from "src/index.js"
 
 Vue.use(metax)
 
-export default {
-    "template":"dummy store"
-}
+import plugin from "./plugin.js"
+
+
+export default new metax.Store({
+    plugins:[plugin],
+})
