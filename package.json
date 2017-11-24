@@ -11,8 +11,8 @@
     "type": "git",
     "url": "git+https://github.com/jiangshanmeta/metax.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "jiangshanmeta",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/jiangshanmeta/metax/issues"
   },

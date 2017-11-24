@@ -7,6 +7,11 @@ function resolve (dir) {
 console.log(__dirname,"+++++++++++")
 
 console.log(resolve('example'))
+
+const examplePath = resolve('example');
+const srcPath = resolve('src');
+
+
 module.exports = {
     entry:{
         main:"./example/main.js",
@@ -18,7 +23,8 @@ module.exports = {
     resolve: {
         extensions: ['.js', '.vue', '.json'],
         alias: {
-            '@': resolve('example')
+            '@': examplePath,
+            'src': srcPath,
         },
     },
     devServer:{
@@ -29,12 +35,12 @@ module.exports = {
             {
                 test:/\.js$/,
                 loader:"babel-loader",
-                include:[resolve('src'),resolve('example')]
+                include:[srcPath,examplePath]
             },
             {
                 test:/\.vue$/,
                 loader:"vue-loader",
-                include:[resolve('example')],
+                include:[examplePath],
             },
 
 
