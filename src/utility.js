@@ -1,7 +1,7 @@
-function proxy(target,key,source){
+function proxy(target,key,source,sourceKey=key){
     Object.defineProperty(target,key,{
         get(){
-            return source[key]
+            return source[sourceKey]
         },
         enumerable:true
     })
