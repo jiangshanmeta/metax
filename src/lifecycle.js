@@ -7,12 +7,6 @@ function init_lifecycle(store){
     }else{
         store.$root = store;
     }
-
-    if(!options.modulePath){
-        options.modulePath = [];
-    }
-
-
 }
 
 function get_first_unnamespaced_parent(store){

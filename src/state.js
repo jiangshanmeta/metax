@@ -1,5 +1,6 @@
 import Vue from "vue"
 import {proxy} from "./utility.js"
+import {get_first_unnamespaced_parent} from "./lifecycle.js"
 
 function state_mixin(Store){
     Object.defineProperty(Store.prototype,'$watch',{
@@ -18,6 +19,11 @@ function init_state(store){
         vueOption.data = data;
     }
     let getters = store.$options.getters;
+    const isModule = store.$isModule;
+
+    const $root = store.$root;
+    const rootState = $root.state;
+    const rootGetters = $root.getters;
 
     let computed = {};
 
@@ -27,8 +33,12 @@ function init_state(store){
         keys.forEach((key)=>{
             let getterFn = getters[key];
             computed[key] = function(){
+                let args = [store.state,store.getters];
+                if(isModule){
+                    args.push(rootState,rootGetters)
+                }
                 // TODO 实现模块中的rootState和rootGetters
-                return getterFn(store.state,store.getters)
+                return getterFn(...args)
             }
         })
     }
@@ -37,6 +47,19 @@ function init_state(store){
 
     store._vm = new Vue(vueOption)
 
+    const namespaced = store.$options.namespaced;
+    // 非根实例才需要代理到父实例上
+    const needProxyParent = store.$root !== store;
+    const parent = needProxyParent ? get_first_unnamespaced_parent(store):null;
+    let prefix = '';
+    if(namespaced){
+        const modulePath = store.$options.modulePath;
+        if(modulePath.length){
+            prefix = modulePath.join("/") + "/";
+        }
+    }
+
+    // state代理到父元素上在module中做
     if(store._vm.$data){
         let keys = Object.keys(store._vm.$data);
         keys.forEach((key)=>{
@@ -47,7 +70,11 @@ function init_state(store){
     if(getters){
         let keys = Object.keys(getters);
         keys.forEach((key)=>{
-            proxy(store.getters,key,store._vm)
+            proxy(store.getters,key,store._vm);
+            // 代理到第一个有命名空间的父实例上
+            if(needProxyParent){
+                proxy(parent.getters,prefix+key,store.getters,key)
+            }
         })
     }
 
