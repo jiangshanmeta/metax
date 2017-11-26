@@ -4,7 +4,8 @@ import metax from "src/index.js"
 Vue.use(metax)
 
 import plugin from "./plugin.js"
-
+import module1 from "./module1.js"
+import module2 from "./module2.js"
 
 export default new metax.Store({
     plugins:[plugin],
@@ -23,4 +24,8 @@ export default new metax.Store({
             return getters.totalPrice - getters.postFee;
         }
     },
+    modules:{
+        module1,
+        module2,
+    }
 })
