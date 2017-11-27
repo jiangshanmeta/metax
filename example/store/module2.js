@@ -11,5 +11,10 @@ export default{
         desc(state,getters,rootState,rootGetters){
             return `${state.bookName} is ${getters.bookPrice} and finalPrice is ${rootGetters.finalPrice} `
         }
-    }
+    },
+    mutations:{
+        changeFloat(state,newFloat){
+            state.floatNumber = newFloat;
+        }
+    },
 }

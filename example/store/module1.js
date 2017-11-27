@@ -13,4 +13,11 @@ export default{
             return `${getters.fullName} is ${state.age} years old`;
         }
     },
+    mutations:{
+        changeAge(state,payload){
+            // console.log(state,payload)
+            state.age = payload.newAge;
+            // console.log(state.age)
+        },
+    },
 }
