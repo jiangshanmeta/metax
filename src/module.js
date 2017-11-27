@@ -14,7 +14,10 @@ function init_module(store){
             const moduleOption = modules[key];
             moduleOption.parent = store;
             let copyPath = Array.from(modulePath);
-            copyPath.push(key);
+            if(moduleOption.namespaced){
+                copyPath.push(key);
+            }
+            
             moduleOption.modulePath = copyPath;
 
             store._modules[key] = new Store(moduleOption);

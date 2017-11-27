@@ -9,18 +9,7 @@ function init_lifecycle(store){
     }
 }
 
-function get_first_unnamespaced_parent(store){
-    let parent = store.$parent;
-    while(parent){
-        if(parent.$options.namespaced){
-            return parent;
-        }
-        parent = parent.$parent
-    }
-    return store.$root;
-}
 
 export {
     init_lifecycle,
-    get_first_unnamespaced_parent,
 }

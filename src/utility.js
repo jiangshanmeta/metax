@@ -3,6 +3,9 @@ function proxy(target,key,source,sourceKey=key){
         get(){
             return source[sourceKey]
         },
+        set(newVal){
+            return source[sourceKey] = newVal
+        },
         enumerable:true
     })
 }

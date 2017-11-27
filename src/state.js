@@ -1,9 +1,8 @@
 import Vue from "vue"
 import {proxy} from "./utility.js"
-import {get_first_unnamespaced_parent} from "./lifecycle.js"
 
 function state_mixin(Store){
-    Object.defineProperty(Store.prototype,'$watch',{
+    Object.defineProperty(Store.prototype,'watch',{
         value:function(getter,cb,option){
             return this._vm.$watch(getter,cb,option)
         }
@@ -48,9 +47,8 @@ function init_state(store){
     store._vm = new Vue(vueOption)
 
     const namespaced = store.$options.namespaced;
-    // 非根实例才需要代理到父实例上
-    const needProxyParent = store.$root !== store;
-    const parent = needProxyParent ? get_first_unnamespaced_parent(store):null;
+    // 非根实例才需要代理到根实例
+    const needProxyParent = $root !== store;
     let prefix = '';
     if(namespaced){
         const modulePath = store.$options.modulePath;
@@ -59,7 +57,7 @@ function init_state(store){
         }
     }
 
-    // state代理到父元素上在module中做
+    // state代理到根实例上在module中做
     if(store._vm.$data){
         let keys = Object.keys(store._vm.$data);
         keys.forEach((key)=>{
@@ -73,7 +71,7 @@ function init_state(store){
             proxy(store.getters,key,store._vm);
             // 代理到第一个有命名空间的父实例上
             if(needProxyParent){
-                proxy(parent.getters,prefix+key,store.getters,key)
+                proxy($root.getters,prefix+key,store.getters,key)
             }
         })
     }
