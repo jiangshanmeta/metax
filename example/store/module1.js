@@ -19,5 +19,16 @@ export default{
             state.age = payload.newAge;
             // console.log(state.age)
         },
+        changeLastName(state,payload){
+            state.lastName = payload
+        }
+    },
+    actions:{
+        changeUserInfo({commit,state},payload){
+            setTimeout(()=>{
+                commit('changeAge',{newAge:state.age+2});
+                commit('changeLastName',payload.lastName)
+            })
+        }
     },
 }

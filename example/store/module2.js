@@ -17,4 +17,13 @@ export default{
             state.floatNumber = newFloat;
         }
     },
+    actions:{
+        changeBookInfo({dispatch}){
+            console.log("===")
+            dispatch("module2/changeNumber",null,{root:true});
+        },
+        changeNumber({commit,state}){
+            commit('changeFloat',state.floatNumber+1);
+        }
+    },
 }
