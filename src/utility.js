@@ -6,7 +6,8 @@ function proxy(target,key,source,sourceKey=key){
         set(newVal){
             return source[sourceKey] = newVal
         },
-        enumerable:true
+        enumerable:true,
+        configurable:true,
     })
 }
 
