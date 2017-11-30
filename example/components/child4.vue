@@ -48,8 +48,8 @@ export default{
             console.log(this.$store);
         },
         unRegist(){
-            this.$store.unregisterModule(['module2','module3']);
-            this.isRegisted = false;
+            this.$store.unregisterModule(['module2','module3'],{preserveState:true});
+            // this.isRegisted = false;
             console.log(this.$store)
         }
     }
