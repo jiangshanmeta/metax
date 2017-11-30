@@ -1,34 +1,24 @@
-function init_mutations(store){
+import {getStoreCommonInfo} from "./lifecycle.js"
+
+function initMutations(store){
     store._mutations = {};
-    
-    const options = store.$options;
-    const mutations = options.mutations;
+    const storeCommonInfo = getStoreCommonInfo(store);
+    const mutations = store.$options.mutations;
     const $root = store.$root;
-    const needProxyRoot = $root !== store;
-    const namespaced = store.$options.namespaced;
-    
-    if(needProxyRoot){
+
+    if(storeCommonInfo.needProxyRoot){
         store._mutation_subscribes = $root._mutation_subscribes;
     }else{
         store._mutation_subscribes = [];
     }
 
-    let prefix = '';
-    if(namespaced){
-        const modulePath = store.$options.modulePath;
-        if(modulePath.length){
-            prefix = modulePath.join("/") + "/";
-        }
-    }
-
-    
     if(mutations){
         let keys = Object.keys(mutations);
         keys.forEach((key)=>{
             let cb = mutations[key];
-            _addMutationToStore(store,key,cb,store);
-            if(needProxyRoot){
-                _addMutationToStore($root,prefix+key,cb,store);
+            registerMutation(store,key,cb,store);
+            if(storeCommonInfo.needProxyRoot){
+                registerMutation($root,storeCommonInfo.prefix+key,cb,store);
             }
 
         })
@@ -36,7 +26,7 @@ function init_mutations(store){
 
 }
 
-function _addMutationToStore(store,key,cb,context){
+function registerMutation(store,key,cb,context){
     if(!store._mutations[key]){
         store._mutations[key] = [];
     }
@@ -60,7 +50,7 @@ function run_subscribe(store,mutation,state){
 }
 
 
-function mutation_mixin(Store){
+function mutationMixin(Store){
     Object.defineProperty(Store.prototype,'commit',{
         value(type,payload){
             if(type && typeof type ==='object'){
@@ -86,8 +76,30 @@ function mutation_mixin(Store){
     })
 }
 
+function unregisterMutation(store){
+    const mutations = store.$options.mutations;
+    if(mutations){
+        const keys = Object.keys(mutations);
+        const $root = store.$root;
+        const storeCommonInfo = getStoreCommonInfo(store);
+        const prefix = storeCommonInfo.prefix;
+
+        keys.forEach((key)=>{
+            let mutationArr = $root._mutations[prefix+key];
+            let index = mutationArr.length;
+            while(index--){
+                let item = mutationArr[index];
+                if(item.store === store){
+                    mutationArr.splice(index,1);
+                }
+            }
+        })
+    }
+}
+
 
 export {
-    init_mutations,
-    mutation_mixin,
+    initMutations,
+    mutationMixin,
+    unregisterMutation,
 }

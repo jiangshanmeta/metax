@@ -1,4 +1,4 @@
-export default function init_plugin(store){
+function initPlugins(store){
     const plugins = store.$options.plugins;
     if(!Array.isArray(plugins)){
         return;
@@ -6,4 +6,8 @@ export default function init_plugin(store){
     plugins.forEach((plugin)=>{
         plugin(store);
     });
+}
+
+export {
+    initPlugins
 }

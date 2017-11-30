@@ -1,5 +1,9 @@
 import {proxy} from "./utility.js"
-function init_module(store){
+import {unregisterViewmodel} from "./viewmodel.js"
+import {unregisterMutation} from "./mutation.js"
+import {unregisterAction} from "./action.js"
+
+function initModules(store){
     store._modules = {};
     const options = store.$options;
     if(!options.modulePath){
@@ -10,12 +14,12 @@ function init_module(store){
     if(modules){
         let keys = Object.keys(modules);
         keys.forEach((key)=>{
-            init_module_item(store,key,modules[key])
+            initModule(store,key,modules[key])
         })
     }
 }
 
-function init_module_item(store,moduleName,moduleOption){
+function initModule(store,moduleName,moduleOption){
     const options = store.$options;
     const storePath = store.$options.modulePath;
     const modulePath = Array.from(storePath);
@@ -25,21 +29,11 @@ function init_module_item(store,moduleName,moduleOption){
     moduleOption.parent = store;
     moduleOption.modulePath = modulePath;
     store._modules[moduleName] = new store.constructor(moduleOption);
-    Object.defineProperty(store.state,moduleName,{
-        get(){
-            return store._modules[moduleName].state;
-        },
-        configurable:true,
-    });
+    store.state[moduleName] = store._modules[moduleName].state;
 }
 
 
-function module_mixin(Store){
-    Object.defineProperty(Store.prototype,'$isModule',{
-        get(){
-            return this.$root !== this
-        }
-    });
+function moduleMixin(Store){
     Object.defineProperty(Store.prototype,'registerModule',{
         value(path,module){
             if(!Array.isArray(path)){
@@ -56,11 +50,11 @@ function module_mixin(Store){
                 }
                 length--;
             }
-            init_module_item(store,path.shift(),module);
+            initModule(store,path.shift(),module);
         }
     });
     Object.defineProperty(Store.prototype,'unregisterModule',{
-        value(path,module){
+        value(path,{preserveState}={preserveState:false}){
             if(!Array.isArray(path)){
                 path = [path];
             }
@@ -70,13 +64,17 @@ function module_mixin(Store){
                 let moduleName = path.shift();
                 store = store._modules[moduleName];
                 if(!store){
-                    console.error("注册路径异常");
+                    console.error("删除module路径异常");
                     return;
                 }
                 length--;
             }
             let moduleName = path.shift();
             let needDelStore = store._modules[moduleName];
+            if(!needDelStore){
+                console.error("要删除module不存在");
+                return;
+            }
             let keys = Object.keys(needDelStore._modules);
             // 删除子组件
             keys.forEach((key)=>{
@@ -84,57 +82,20 @@ function module_mixin(Store){
             });
             // 删除代理的 state getters mutation action
             const $root = store.$root;
-            delete store.state[moduleName];
-            let prefix = '';
-            if(needDelStore.$options.namespaced){
-                if(needDelStore.$options.modulePath.length){
-                    prefix = needDelStore.$options.modulePath.join("/") + "/";
-                }
+            if(!preserveState){
+                delete store.state[moduleName];
             }
+            
+            unregisterViewmodel(needDelStore,preserveState);
+            unregisterMutation(needDelStore);
+            unregisterAction(needDelStore);
 
-            if(needDelStore.$options.getters){
-                let keys = Object.keys(needDelStore.$options.getters);
-                keys.forEach((key)=>{
-                    delete $root.getters[prefix + key];
-                })
-            }
-
-            if(needDelStore.$options.mutations){
-                let keys = Object.keys(needDelStore.$options.mutations);
-                keys.forEach((key)=>{
-                    let mutationArr = $root._mutations[prefix+key];
-                    let index = mutationArr.length;
-                    while(index--){
-                        let item = mutationArr[index];
-                        if(item.store === needDelStore){
-                            mutationArr.splice(index,1)
-                        }
-                    }
-                })
-            }
-
-            if(needDelStore.$options.actions){
-                let keys = Object.keys(needDelStore.$options.actions);
-                keys.forEach((key)=>{
-                    let actionArr = $root._actions[prefix+key];
-                    let index = actionArr.length;
-                    while(index--){
-                        let item = actionArr[index];
-                        if(item.store === needDelStore){
-                            actionArr.splice(index,1);
-                        }
-                    }
-                })
-            }
-
-
-            needDelStore._vm.$destroy();
             delete store._modules[moduleName];
         }
     })
 }
 
 export {
-    init_module,
-    module_mixin,
+    initModules,
+    moduleMixin,
 }

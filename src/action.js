@@ -1,41 +1,30 @@
-function init_actions(store){
+import {getStoreCommonInfo} from "./lifecycle.js"
+
+function initActions(store){
     store._actions = {};
-
-    const options = store.$options;
-    const actions = options.actions;
+    const storeCommonInfo = getStoreCommonInfo(store);
+    const actions = store.$options.actions;
     const $root = store.$root;
-    const needProxyRoot = $root !== store;
-    const namespaced = options.namespaced;
 
-    if(needProxyRoot){
+    if(storeCommonInfo.needProxyRoot){
         store._actions_subscribers = $root._actions_subscribers;
     }else{
         store._actions_subscribers = [];
     }
 
-    let prefix = '';
-    if(namespaced){
-        const modulePath = store.$options.modulePath;
-        if(modulePath.length){
-            prefix = modulePath.join("/") + "/";
-        }
-    }
-
-    // console.log(prefix,"prefix")
-
     if(actions){
         let keys = Object.keys(actions);
         keys.forEach((key)=>{
             let action = actions[key];
-            _addActionToStore(store,key,action,store);
-            if(needProxyRoot){
-                _addActionToStore($root,prefix+key,action,store)
+            registerAction(store,key,action,store);
+            if(storeCommonInfo.needProxyRoot){
+                registerAction($root,storeCommonInfo.prefix+key,action,store)
             }
         })
     }
 }
 
-function _addActionToStore(store,key,cb,context){
+function registerAction(store,key,cb,context){
     if(!store._actions[key]){
         store._actions[key] = [];
     }
@@ -47,7 +36,7 @@ function _addActionToStore(store,key,cb,context){
     })
 }
 
-function action_mixin(Store){
+function actionMixin(Store){
     Object.defineProperty(Store.prototype,'dispatch',{
         value(type,payload){
             if(type && typeof type === 'object'){
@@ -109,7 +98,30 @@ function dispatch(store,type,cb,payload){
     run_action_subscribes(store,{type,payload:payload},store.state)
 }
 
+function unregisterAction(store){
+    const actions = store.$options.actions;
+    if(actions){
+        const keys = Object.keys(actions);
+        const $root = store.$root;
+        const storeCommonInfo = getStoreCommonInfo(store);
+        const prefix = storeCommonInfo.prefix;
+
+        keys.forEach((key)=>{
+            let actionArr = $root._actions[prefix+key];
+            let index = actionArr.length;
+            while(index--){
+                let item = actionArr[index];
+                if(item.store === store){
+                    actionArr.splice(index,1);
+                }
+            }
+        });
+
+    }
+}
+
 export {
-    init_actions,
-    action_mixin,
+    initActions,
+    actionMixin,
+    unregisterAction,
 }
