@@ -78,7 +78,7 @@ function moduleMixin(Store){
             let keys = Object.keys(needDelStore._modules);
             // 删除子组件
             keys.forEach((key)=>{
-                needDelStore.unregisterModule(key);
+                needDelStore.unregisterModule(key,{preserveState});
             });
             // 删除代理的 state getters mutation action
             const $root = store.$root;
